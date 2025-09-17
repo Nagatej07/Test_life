@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce7d8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease-in-out;
+            padding: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header a {
+            color: #ff6b00;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header a:hover {
+            color: #e55c00;
+        }
+
+        .header-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .profile-section .avatar-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            background-color: #fce7d8;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: #ff6b00;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-section .avatar-container i {
+            margin-bottom: -10px;
+        }
+
+        .profile-section .change-photo-btn {
+            background-color: #ff6b00;
+            color: white;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .profile-section .change-photo-btn:hover {
+            background-color: #e55c00;
+        }
+
+        .form-section {
+            padding-top: 2rem;
+        }
+        
+        .form-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-section p {
+            color: #777;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            border: 1px solid #ddd;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #ff6b00;
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+        }
+        
+        .privacy-section {
+            margin-top: 2rem;
+        }
+
+        .privacy-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .privacy-toggle p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #ff6b00;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background-color: #eee;
+            color: #555;
+            border: none;
+        }
+        .btn-cancel:hover {
+            background-color: #ddd;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #ff8c42, #ff6b00);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.2);
+        }
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 107, 0, 0.3);
+        }
+        
+        .info-box {
+            background-color: #e5f0e9;
+            color: #32a852;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        .info-box i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+        <header class="header">
+            <a href="dashboard.html" class="back-link">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Back to Chat
+            </a>
+            <div class="header-title">
+                <h1>MediTrack+ Profile</h1>
+            </div>
+            <div></div> <!-- Spacer for alignment -->
+        </header>
+
+        <main>
+            <form id="profile-form">
+                <section class="form-section personal-info">
+                    <div class="profile-section">
+                        <div class="avatar-container">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <button type="button" class="change-photo-btn">Change Photo</button>
+                    </div>
+                    <h2>Personal Information</h2>
+                    <p>This information will be used to personalize your experience.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="first-name">First Name</label>
+                            <input type="text" id="first-name" name="first-name" placeholder="Enter your first name">
+                        </div>
+                        <div class="form-group">
+                            <label for="last-name">Last Name</label>
+                            <input type="text" id="last-name" name="last-name" placeholder="Enter your last name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="john.doe@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+1 234 567 890">
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">Date of Birth</label>
+                            <input type="date" id="dob" name="dob">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender">
+                                <option value="">Select your gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="my-8 border-t border-gray-200" />
+
+                <section class="form-section medical-info">
+                    <h2>Medical Information</h2>
+                    <p>This information will be used to create personalized health plans.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="blood-type">Blood Type</label>
+                            <select id="blood-type" name="blood-type">
+                                <option value="">Select</option>
+                                <option value="a+">A+</option>
+                                <option value="a-">A-</option>
+                                <option value="b+">B+</option>
+                                <option value="b-">B-</option>
+                                <option value="o+">O+</option>
+                                <option value="o-">O-</option>
+                                <option value="ab+">AB+</option>
+                                <option value="ab-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="height">Height (cm)</label>
+                            <input type="number" id="height" name="height" placeholder="e.g., 170">
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Weight (kg)</label>
+                            <input type="number" id="weight" name="weight" placeholder="e.g., 70">
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label for="allergies">Known Allergies</label>
+                            <textarea id="allergies" name="allergies" placeholder="List any known allergies (medications, food, and environment)"></textarea>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label for="medications">Current Medications</label>
+                            <textarea id="medications" name="medications" placeholder="List current medications with dosages"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="my-8 border-t border-gray-200" />
+
+                <section class="form-section emergency-contact">
+                    <h2>Emergency Contact</h2>
+                    <p>In case of an emergency, we will use this information to contact your loved ones.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="contact-name">Full Name</label>
+                            <input type="text" id="contact-name" name="contact-name" placeholder="Emergency contact name">
+                        </div>
+                        <div class="form-group">
+                            <label for="relationship">Relationship</label>
+                            <select id="relationship" name="relationship">
+                                <option value="">Select relationship</option>
+                                <option value="spouse">Spouse</option>
+                                <option value="parent">Parent</option>
+                                <option value="child">Child</option>
+                                <option value="sibling">Sibling</option>
+                                <option value="friend">Friend</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-phone">Contact Phone</label>
+                            <input type="tel" id="contact-phone" name="contact-phone" placeholder="+1 987 654 321">
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="my-8 border-t border-gray-200" />
+
+                <section class="form-section privacy-notifications">
+                    <h2>Privacy & Notifications</h2>
+                    <p>Control your data sharing and notification preferences.</p>
+                    <div class="privacy-toggle">
+                        <p>Health Data Sharing</p>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="data-sharing" name="data-sharing">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-500 -mt-2 mb-4">By enabling, you agree to share your anonymized health data for medical research.</p>
+
+                    <div class="privacy-toggle">
+                        <p>Medication Alerts</p>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="medication-alerts" name="medication-alerts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-500 -mt-2 mb-4">Get notifications to remind you if your medications are due.</p>
+
+                    <div class="privacy-toggle">
+                        <p>Health Tips</p>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="health-tips" name="health-tips" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-500 -mt-2">Receive personalized health tips and wellness advice.</p>
+                </section>
+
+                <div class="buttons-container">
+                    <button type="button" class="btn btn-cancel">Cancel Changes</button>
+                    <button type="submit" class="btn btn-save">Save Profile</button>
+                </div>
+            </form>
+        </main>
+        
+        <div class="info-box">
+            <i class="fa-solid fa-shield-halved"></i>
+            <p>Your health information is encrypted and securely stored. We comply with HIPAA regulations to protect your privacy.</p>
+        </div>
+    </div>
+
+</body>
+</html>

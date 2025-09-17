@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fce7d8;
+            color: #212121;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            overflow-x: hidden;
+        }
+        /* Background Decoration */
+        .bg-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .decoration-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+        }
+        .circle-1 {
+            width: 12rem;
+            height: 12rem;
+            background: linear-gradient(135deg, #ff8c42, #ff6b00);
+            top: 5%;
+            right: 10%;
+            animation: float 6s ease-in-out infinite;
+        }
+        .circle-2 {
+            width: 8rem;
+            height: 8rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            bottom: 15%;
+            left: 8%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+        .circle-3 {
+            width: 6rem;
+            height: 6rem;
+            background: linear-gradient(135deg, #ff8c42, #ff6b00);
+            top: 60%;
+            left: 15%;
+            opacity: 0.04;
+            animation: float 10s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        /* Main Container */
+        .history-container {
+            width: 100%;
+            max-width: 60rem;
+            background: #FFFFFF;
+            border-radius: 2rem;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(224, 224, 224, 0.3);
+            min-height: 90vh;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.8);
+        }
+        .history-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        .back-btn:hover {
+            transform: scale(1.1);
+        }
+        .back-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        .search-filters {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.8);
+        }
+        .search-filters input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border: 2px solid rgba(238, 238, 238, 0.8);
+            border-radius: 1.5rem;
+            font-size: 0.875rem;
+            color: #212121;
+            background: #FFFFFF;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .search-filters input[type="text"]:focus {
+            border-color: #ff6b00;
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+        }
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .filter-controls select {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid rgba(238, 238, 238, 0.8);
+            border-radius: 1.5rem;
+            background-color: #FFFFFF;
+            font-size: 0.875rem;
+            color: #616161;
+            cursor: pointer;
+        }
+        .clear-btn {
+            background-color: transparent;
+            border: none;
+            color: #ff6b00;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-list::-webkit-scrollbar-track {
+            background: rgba(238, 238, 238, 0.3);
+            border-radius: 3px;
+        }
+        .history-list::-webkit-scrollbar-thumb {
+            background: rgba(158, 158, 158, 0.4);
+            border-radius: 3px;
+        }
+        .history-item {
+            background: #FFFFFF;
+            border: 1px solid rgba(238, 238, 238, 0.8);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+        .history-content {
+            display: flex;
+            flex-direction: column;
+        }
+        .history-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #212121;
+        }
+        .history-meta {
+            font-size: 0.75rem;
+            color: #9E9E9E;
+            margin-top: 0.25rem;
+        }
+        .history-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .history-actions button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .history-actions button svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #616161;
+        }
+        .history-actions button:hover svg {
+            color: #ff6b00;
+        }
+        .no-history {
+            text-align: center;
+            color: #616161;
+            font-style: italic;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .history-container {
+                border-radius: 1.5rem;
+                min-height: 98vh;
+                max-height: 98vh;
+            }
+            .search-filters {
+                padding: 1rem 1.5rem;
+            }
+            .history-list {
+                padding: 1rem 1.5rem;
+            }
+            .history-item {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background decoration -->
+    <div class="bg-decoration">
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+        <div class="decoration-circle circle-3"></div>
+    </div>
+    <div class="history-container">
+        <div class="history-header">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5"></path>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <h1>Chat History</h1>
+            <span></span>
+        </div>
+        <div class="search-filters">
+            <input type="text" id="searchBar" placeholder="Search conversations...">
+        </div>
+        <div class="history-list" id="historyList">
+            <!-- Chat history items will be dynamically added here -->
+            <p class="no-history">No chat history found.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const historyList = document.getElementById('historyList');
+            const searchBar = document.getElementById('searchBar');
+            
+            let chatHistory = [];
+            let sessions = {};
+            
+            function loadChatHistory() {
+                try {
+                    const storedHistory = localStorage.getItem('chatHistory');
+                    chatHistory = storedHistory ? JSON.parse(storedHistory) : [];
+                    groupIntoSessions();
+                    renderHistory();
+                } catch (e) {
+                    console.error("Failed to load chat history from local storage.", e);
+                }
+            }
+            
+            function groupIntoSessions() {
+                sessions = {};
+                let currentSessionId = null;
+                let sessionCounter = 1;
+                
+                chatHistory.forEach(msg => {
+                    if (msg.role === 'user') {
+                        currentSessionId = 'session_' + sessionCounter++;
+                        sessions[currentSessionId] = {
+                            id: currentSessionId,
+                            timestamp: msg.timestamp,
+                            summary: msg.content.substring(0, 50) + (msg.content.length > 50 ? '...' : ''),
+                            messages: [msg]
+                        };
+                    } else if (currentSessionId && msg.content && msg.content.trim() !== '') {
+                        sessions[currentSessionId].messages.push(msg);
+                    }
+                });
+            }
+            
+            function renderHistory(filter = '') {
+                historyList.innerHTML = '';
+                const filteredSessions = Object.values(sessions).filter(session => 
+                    session.summary.toLowerCase().includes(filter.toLowerCase())
+                );
+                
+                if (filteredSessions.length === 0) {
+                    historyList.innerHTML = '<p class="no-history">No conversations found.</p>';
+                    return;
+                }
+
+                filteredSessions.reverse().forEach(session => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `
+                        <div class="history-content">
+                            <span class="history-title">${session.summary}</span>
+                            <span class="history-meta">${new Date(session.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="history-actions">
+                            <button class="load-btn" data-id="${session.id}" title="Load Chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/>
+                                </svg>
+                            </button>
+                            <button class="export-btn" data-id="${session.id}" title="Export to PDF">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="12" y1="12" x2="12" y2="17"></line>
+                                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                                </svg>
+                            </button>
+                            <button class="delete-btn" data-id="${session.id}" title="Delete Chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    historyList.appendChild(item);
+                });
+                addEventListenersToHistoryItems();
+            }
+
+            function addEventListenersToHistoryItems() {
+                document.querySelectorAll('.load-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const sessionId = e.currentTarget.dataset.id;
+                        const session = sessions[sessionId];
+                        if (session) {
+                            localStorage.setItem('tempChatHistory', JSON.stringify(session.messages));
+                            window.location.href = 'dashboard.html?load=true';
+                        }
+                    });
+                });
+                
+                document.querySelectorAll('.export-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const sessionId = e.currentTarget.dataset.id;
+                        const session = sessions[sessionId];
+                        if (session) {
+                            exportChatToPdf(session);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const sessionId = e.currentTarget.dataset.id;
+                        if (confirm('Are you sure you want to delete this conversation?')) {
+                            const session = sessions[sessionId];
+                            if (session) {
+                                const messagesToDelete = session.messages;
+                                chatHistory = chatHistory.filter(msg => 
+                                    !messagesToDelete.some(delMsg => 
+                                        delMsg.content === msg.content && 
+                                        delMsg.timestamp === msg.timestamp && 
+                                        delMsg.role === msg.role
+                                    )
+                                );
+                                
+                                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+                                delete sessions[sessionId];
+                                renderHistory(searchBar.value);
+                            }
+                        }
+                    });
+                });
+            }
+
+            function exportChatToPdf(session) {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    // PDF settings
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const margin = 20;
+                    const maxWidth = pageWidth - 2 * margin;
+                    let y = margin;
+                    
+                    // Helper function to add text with word wrap
+                    function addTextToPdf(text, x, startY, options = {}) {
+                        const fontSize = options.fontSize || 12;
+                        const fontStyle = options.fontStyle || 'normal';
+                        const maxWidth = options.maxWidth || (pageWidth - 2 * margin);
+                        
+                        doc.setFontSize(fontSize);
+                        doc.setFont('helvetica', fontStyle);
+                        
+                        const lines = doc.splitTextToSize(text, maxWidth);
+                        let currentY = startY;
+                        
+                        lines.forEach(line => {
+                            // Check if we need a new page
+                            if (currentY + fontSize > pageHeight - margin) {
+                                doc.addPage();
+                                currentY = margin;
+                            }
+                            
+                            doc.text(line, x, currentY);
+                            currentY += fontSize * 0.5 + 2;
+                        });
+                        
+                        return currentY;
+                    }
+                    
+                    // Add title
+                    y = addTextToPdf(
+                        'Chat History - ' + new Date(session.timestamp).toLocaleString(),
+                        margin,
+                        y,
+                        { fontSize: 16, fontStyle: 'bold' }
+                    );
+                    
+                    y += 10; // Add some space after title
+                    
+                    // Add messages
+                    session.messages.forEach((msg, index) => {
+                        // Add some space between messages
+                        if (index > 0) {
+                            y += 8;
+                        }
+                        
+                        // Check if we need a new page
+                        if (y > pageHeight - 60) {
+                            doc.addPage();
+                            y = margin;
+                        }
+                        
+                        // Add role header
+                        const roleText = msg.role === 'user' ? 'You:' : 'Assistant:';
+                        y = addTextToPdf(
+                            roleText,
+                            margin,
+                            y,
+                            { fontSize: 12, fontStyle: 'bold' }
+                        );
+                        
+                        // Add message content
+                        y = addTextToPdf(
+                            msg.content,
+                            margin,
+                            y + 2,
+                            { fontSize: 10, fontStyle: 'normal' }
+                        );
+                        
+                        y += 5; // Add space after each message
+                    });
+                    
+                    // Generate filename
+                    const date = new Date(session.timestamp);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const timeStr = date.toTimeString().split(' ')[0].replace(/:/g, '-');
+                    const filename = `chat-history-${dateStr}-${timeStr}.pdf`;
+                    
+                    // Save the PDF
+                    doc.save(filename);
+                    
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert('Failed to export PDF. Please try again.');
+                }
+            }
+
+            searchBar.addEventListener('input', (e) => {
+                renderHistory(e.target.value);
+            });
+
+            loadChatHistory();
+        });
+    </script>
+</body>
+</html>

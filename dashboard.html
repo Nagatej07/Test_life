@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lifestyle AI - Your Personal Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fce7d8;
+            color: #212121;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+        }
+
+        /* Background Decoration */
+        .bg-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .decoration-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+        }
+
+        .circle-1 {
+            width: 12rem;
+            height: 12rem;
+            background: linear-gradient(135deg, #ff8c42, #ff6b00);
+            top: 5%;
+            right: 10%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .circle-2 {
+            width: 8rem;
+            height: 8rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            bottom: 15%;
+            left: 8%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        .circle-3 {
+            width: 6rem;
+            height: 6rem;
+            background: linear-gradient(135deg, #ff8c42, #ff6b00);
+            top: 60%;
+            left: 15%;
+            opacity: 0.04;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 60rem;
+            height: 100vh;
+            max-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Chat Card - Fixed height structure */
+        .chat-card {
+            background: #FFFFFF;
+            border-radius: 2rem;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.08), 
+                0 10px 30px rgba(0, 0, 0, 0.04),
+                0 0 0 1px rgba(224, 224, 224, 0.3);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: calc(100vh - 1rem);
+            max-height: calc(100vh - 1rem);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Header - Fixed height */
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.8);
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.02), rgba(255, 255, 255, 0.8));
+            flex-shrink: 0;
+            height: 5rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.3);
+        }
+
+        .logo-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #FFFFFF;
+        }
+
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #212121;
+            margin-bottom: 0.125rem;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: #9E9E9E;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .history-btn, .profile-icon, .assistant-btn, .logout-btn {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: rgba(255, 107, 0, 0.1);
+            border: 2px solid rgba(255, 107, 0, 0.2);
+        }
+        
+        .history-btn:hover, .assistant-btn:hover, .logout-btn:hover {
+            background: rgba(255, 107, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .history-btn svg, .assistant-btn svg, .logout-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #ff6b00;
+        }
+        
+        .personalized-header .history-btn,
+        .personalized-header .assistant-btn {
+            display: flex;
+        }
+        
+        .general-header #historyBtn,
+        .general-header #assistantBtn {
+            display: none;
+        }
+
+        .profile-icon {
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.1), rgba(255, 107, 0, 0.05));
+            border: 2px solid rgba(255, 107, 0, 0.2);
+        }
+
+        .profile-svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #ff6b00;
+        }
+
+        /* View Container - Proper flex structure */
+        .content-view {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .content-view.active {
+            display: flex;
+        }
+
+        /* Care Mode Toggle - Fixed height */
+        .care-mode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.8);
+            flex-shrink: 0;
+            height: 4rem;
+        }
+
+        .care-mode-toggle {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            padding: 0.2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(238, 238, 238, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #616161;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .toggle-btn:hover {
+            color: #ff6b00;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+        }
+
+        .toggle-btn.active:hover {
+            background: linear-gradient(135deg, #e55c00, #cc5200);
+            color: #FFFFFF;
+        }
+
+        /* Chat Messages - Proper scrolling container */
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background: linear-gradient(180deg, rgba(249, 249, 249, 0.3) 0%, rgba(255, 255, 255, 0.8) 100%);
+            min-height: 0;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(238, 238, 238, 0.3);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(158, 158, 158, 0.4);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(158, 158, 158, 0.6);
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .bot-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+        }
+
+        .bot-avatar svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #FFFFFF;
+        }
+
+        .message-content {
+            background: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(238, 238, 238, 0.8);
+            max-width: 85%;
+        }
+
+        .message-content h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #212121;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-content p {
+            font-size: 0.875rem;
+            color: #616161;
+            line-height: 1.5;
+        }
+
+        /* Chat Messages */
+        .message {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            animation: messageSlide 0.4s ease-out;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.bot {
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+        }
+
+        .message-avatar.user {
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+        }
+
+        .message-avatar svg {
+            width: 1rem;
+            height: 1rem;
+            color: #FFFFFF;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 1rem 1.25rem;
+            border-radius: 1.25rem;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .message-bubble.bot {
+            background: #FFFFFF;
+            color: #212121;
+            border: 1px solid rgba(238, 238, 238, 0.8);
+            border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+        }
+
+        .message-bubble.user {
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            color: #FFFFFF;
+            border-radius: 1.25rem 1.25rem 0.5rem 1.25rem;
+        }
+
+        /* Call Schedule Button */
+        .call-schedule-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+        }
+
+        .call-schedule-btn:hover {
+            background: linear-gradient(135deg, #e55c00, #cc5200);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 0, 0.4);
+        }
+
+        .call-schedule-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* History Item Styles */
+        .history-item {
+            background: rgba(255, 107, 0, 0.05);
+            border: 1px solid rgba(255, 107, 0, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .status-scheduled {
+            background: #ff6b00;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Chat Input Area - Fixed height */
+        .chat-input-area {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid rgba(238, 238, 238, 0.8);
+            background: rgba(255, 255, 255, 0.95);
+            flex-shrink: 0;
+            min-height: 9rem;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 2px solid rgba(238, 238, 238, 0.8);
+            border-radius: 1.5rem;
+            font-size: 0.875rem;
+            color: #212121;
+            background: #FFFFFF;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: inherit;
+            resize: none;
+        }
+
+        #messageInput::placeholder {
+            color: #BDBDBD;
+        }
+
+        #messageInput:focus {
+            border-color: #ff6b00;
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+        }
+
+        .send-button {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            background: linear-gradient(135deg, #e55c00, #cc5200);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+        }
+
+        .send-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #FFFFFF;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 107, 0, 0.05);
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            border-radius: 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #ff6b00;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(255, 107, 0, 0.1);
+            border-color: rgba(255, 107, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .quick-action-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 32rem;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #212121;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #424242;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid rgba(224, 224, 224, 0.8);
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ff6b00;
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+        }
+
+        .reminder-type-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .reminder-type-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .reminder-type-option input {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #BDBDBD;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+            flex-shrink: 0;
+        }
+        
+        .reminder-type-option input:checked {
+            border-color: #ff6b00;
+            background-color: #ff6b00;
+        }
+        
+        .reminder-type-option input:checked::before {
+            content: '';
+            width: 0.6rem;
+            height: 0.6rem;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .reminder-type-option label {
+            font-size: 0.875rem;
+            color: #424242;
+            font-weight: 500;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-secondary {
+            background: rgba(158, 158, 158, 0.1);
+            color: #616161;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(158, 158, 158, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b00, #e55c00);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #e55c00, #cc5200);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 0, 0.4);
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 0;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #BDBDBD;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* System Message Styles */
+        .system-message {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 1001;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            max-width: 90%;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .system-message-success {
+            background-color: #ff6b00;
+            color: #FFFFFF;
+        }
+
+        .system-message-error {
+            background-color: #ff6b00;
+            color: #FFFFFF;
+        }
+
+        /* Assistant View Styles */
+        .assistant-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(249, 249, 249, 0.3) 0%, rgba(255, 255, 255, 0.8) 100%);
+            gap: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .assistant-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #212121;
+            z-index: 1;
+        }
+        
+        .assistant-description {
+            font-size: 1rem;
+            color: #616161;
+            max-width: 40rem;
+            z-index: 1;
+        }
+        
+        #three-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            opacity: 0.1;
+            height: 100%;
+            width: 100%;
+            display: none;
+            pointer-events: none;
+        }
+        
+        .vapi-container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Diet Tracker Styles */
+        .tracker-page {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(249, 249, 249, 0.3) 0%, rgba(255, 255, 255, 0.8) 100%);
+            gap: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .tracker-page h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #212121;
+        }
+        
+        .progress-bar-container {
+            width: 90%;
+            max-width: 30rem;
+            background-color: #f0f0f0;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            height: 1.5rem;
+            width: 0;
+            background: linear-gradient(90deg, #ff6b00, #e55c00);
+            border-radius: 1rem;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .progress-label {
+            font-weight: 500;
+            color: white;
+            padding-left: 1rem;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .tracker-question {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #424242;
+            margin-bottom: 1rem;
+        }
+        
+        .tracker-actions {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .tracker-btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .tracker-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        
+        .tracker-btn.yes {
+            background: linear-gradient(135deg, #4CAF50, #2E8B57);
+            color: white;
+        }
+        
+        .tracker-btn.no {
+            background: linear-gradient(135deg, #f44336, #D32F2F);
+            color: white;
+        }
+        
+        .tracker-btn:disabled {
+            background: #e0e0e0;
+            color: #9e9e9e;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes slideUpOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.25rem;
+            }
+            
+            .container {
+                max-width: 100%;
+                height: 100vh;
+            }
+            
+            .chat-card {
+                height: calc(100vh - 0.5rem);
+                border-radius: 1.5rem;
+            }
+            
+            .chat-header {
+                padding: 1rem 1.5rem;
+                height: 4rem;
+            }
+            
+            .care-mode-container {
+                padding: 0.75rem 1.5rem;
+                height: 3.5rem;
+            }
+            
+            .chat-messages {
+                padding: 1rem 1.5rem;
+            }
+            
+            .chat-input-area {
+                padding: 1rem 1.5rem 1.5rem;
+                min-height: 8rem;
+            }
+            
+            .modal {
+                width: 95%;
+                padding: 1.5rem;
+                max-width: 90vw;
+            }
+            
+            .assistant-view, .tracker-page {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background decoration -->
+    <div class="bg-decoration">
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+        <div class="decoration-circle circle-3"></div>
+    </div>
+
+    <div class="container">
+        <!-- Main Chat Card -->
+        <div class="chat-card">
+            <!-- Header -->
+            <div class="chat-header general-header" id="chatHeader">
+                <div class="header-left">
+                    <div class="logo">
+                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a10 10 0 0 0-9.84 8.21c.21 4.5 4 8.04 8.84 9.42a1 1 0 0 0 .5 0c4.84-1.38 8.63-4.92 8.84-9.42A10 10 0 0 0 12 2z"></path>
+                            <path d="M12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="brand-info">
+                        <h1 class="brand-name">Lifestyle AI</h1>
+                        <p class="brand-subtitle">Your Personal Assistant</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="history-btn" id="chatHistoryBtn" title="Chat History">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/>
+                        </svg>
+                    </button>
+                    <button class="history-btn" id="historyBtn" title="Reminder History">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                    </button>
+                    <!-- New Personal Assistant Button -->
+                    <button class="assistant-btn" id="assistantBtn" title="Personal Assistant">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="22"></line>
+                        </svg>
+                    </button>
+                     <!-- New Logout Button -->
+                    <button class="logout-btn" id="logoutBtn" title="Logout">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
+                    <div class="profile-icon" id="profileIcon">
+                        <svg class="profile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content View -->
+            <div id="mainView" class="content-view active">
+                <!-- Care Mode Toggle -->
+                <div class="flex flex-col items-center py-2 px-6">
+                    <div class="care-mode-toggle" id="careModeToggle">
+                        <button class="toggle-btn active" data-mode="general">General Care</button>
+                        <button class="toggle-btn" data-mode="personalized">Personalized Care</button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Area -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <div class="bot-avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <div class="message-content">
+                            <h3>Welcome to Lifestyle AI</h3>
+                            <p>I'm your AI assistant. How can I assist you today?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="chat-input-area" id="chatInputArea">
+                    <div class="input-container">
+                        <input type="text" id="messageInput" placeholder="Type your message here..." autocomplete="off"/>
+                        <button type="button" id="sendButton" class="send-button">
+                            <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="quick-actions" id="quickActions">
+                        <!-- Quick actions will be dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Personal Assistant View -->
+            <div id="assistantView" class="content-view">
+                <div class="assistant-view">
+                    <canvas id="three-canvas"></canvas>
+                    <h2 class="assistant-header">Personal Voice Assistant</h2>
+                    <p class="assistant-description">
+                        Speak directly with your AI assistant using your voice. Click the "Start" button to begin a conversation about your health, wellness, or daily routine.
+                    </p>
+                    <div class="vapi-container">
+                        <!-- Vapi Widget -->
+                        <vapi-widget
+                            public-key="bf7dfa4e-8d00-496a-bcda-776dcfacc687"
+                            assistant-id="51def21d-4ffd-4606-8f2e-5e4b33a53090"
+                            mode="voice"
+                            theme="dark"
+                            base-bg-color="#000000"
+                            accent-color="#14B8A6"
+                            cta-button-color="#000000"
+                            cta-button-text-color="#ffffff"
+                            border-radius="large"
+                            size="full"
+                            position="bottom-right"
+                            title="Adex"
+                            start-button-text="Start"
+                            end-button-text="End Conversation"
+                            chat-first-message="Hey, How can I help you today?"
+                            chat-placeholder="Type your message..."
+                            voice-show-transcript="true"
+                            consent-required="true"
+                            consent-title="Terms and conditions"
+                            consent-content="By clicking "Agree," and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as otherwise described in our Terms of Service."
+                            consent-storage-key="vapi_widget_consent"
+                        ></vapi-widget>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diet Tracking Page -->
+            <div id="trackerView" class="content-view">
+                <div class="tracker-page">
+                    <h2 id="trackerTitle">Diet Tracking Progress</h2>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar">
+                            <span class="progress-label" id="progressLabel">0%</span>
+                        </div>
+                    </div>
+                    <div class="tracker-question" id="trackerQuestion">
+                        Did you follow today's diet?
+                    </div>
+                    <div class="tracker-actions" id="trackerActions">
+                        <button class="tracker-btn yes" id="yesBtn">Yes</button>
+                        <button class="tracker-btn no" id="noBtn">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call Schedule Modal -->
+    <div class="modal-overlay" id="callModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                </div>
+                <h2 class="modal-title">Schedule Reminders</h2>
+            </div>
+            
+            <form id="callScheduleForm">
+                
+                <div class="form-group">
+                    <label class="form-label" for="reminderType">Reminder Type</label>
+                    <div class="reminder-type-group">
+                        <div class="reminder-type-option">
+                            <input type="radio" name="reminderType" id="typeCall" value="call" checked>
+                            <label for="typeCall">Call</label>
+                        </div>
+                        <div class="reminder-type-option">
+                            <input type="radio" name="reminderType" id="typeSMS" value="sms">
+                            <label for="typeSMS">SMS</label>
+                        </div>
+                        <div class="reminder-type-option">
+                            <input type="radio" name="reminderType" id="typeWhatsApp" value="whatsapp">
+                            <label for="typeWhatsApp">WhatsApp</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="phoneNumber">Phone Number</label>
+                    <input type="tel" id="phoneNumber" class="form-input" placeholder="+91 9876543210" required/>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="patientName">Your Name</label>
+                    <input type="text" id="patientName" class="form-input" placeholder="Enter your name" required/>
+                </div>
+            </form>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="cancelCall">Cancel</button>
+                <button type="button" class="btn btn-primary" id="scheduleCall">Set Reminders</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include marked.js for Markdown parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
+    <script>
+        // DOM Elements
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatMessages = document.getElementById('chatMessages');
+        const quickActionsContainer = document.getElementById('quickActions');
+        const callModal = document.getElementById('callModal');
+        const scheduleCallBtn = document.getElementById('scheduleCall');
+        const cancelCallBtn = document.getElementById('cancelCall');
+        const callScheduleForm = document.getElementById('callScheduleForm');
+        const historyBtn = document.getElementById('historyBtn'); 
+        const profileIcon = document.getElementById('profileIcon');
+        const careModeToggle = document.getElementById('careModeToggle');
+        const chatHistoryBtn = document.getElementById('chatHistoryBtn');
+        const assistantBtn = document.getElementById('assistantBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const mainView = document.getElementById('mainView');
+        const assistantView = document.getElementById('assistantView');
+        const trackerView = document.getElementById('trackerView');
+        const threeCanvas = document.getElementById('three-canvas');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressLabel = document.getElementById('progressLabel');
+        const chatHeader = document.getElementById('chatHeader');
+        const chatInputArea = document.getElementById('chatInputArea');
+
+        // Chat state
+        let isTyping = false;
+        let messageHistory = JSON.parse(localStorage.getItem('chatHistory')) || []; 
+        let currentAIResponse = null;
+        let currentCareMode = 'general';
+        let trackerData = JSON.parse(localStorage.getItem('dietTracker')) || { progress: 0, lastCheckDate: null };
+
+        // Placeholder for n8n webhook URL
+        const N8N_WEBHOOK_URL = 'http://localhost:5678/webhook-test/diet-reminder';
+
+        // Quick action messages based on mode
+        const quickActions = {
+            general: [
+                { message: 'What is a healthy diet?', text: 'Healthy Diet', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>` },
+                { message: 'Tips for better sleep', text: 'Better Sleep', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>` },
+                { message: 'How to manage stress?', text: 'Stress Management', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v6c0 1.1.9 2 2 2h5v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-6z"/></svg>` },
+            ],
+            personalized: [
+                { message: 'What is a good diet for my body type?', text: 'Diet Plan', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>` },
+                { message: 'Help me plan my fitness routine', text: 'Fitness Plan', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/> <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg>` },
+                { message: 'How can I improve my daily routine?', text: 'Daily Routine', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v6c0 1.1.9 2 2 2h5v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-6z"/></svg>` },
+                { message: 'show tracking', text: 'Diet Tracker', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`}
+            ],
+        };
+        
+        const GEMINI_API_KEY = "AIzaSyAiUIJlnZl_l_7Cexj6aV1jhzhXN9XnkOI";
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+        
+
+        // Simple Local Storage for Demo
+        class LifestyleStorage {
+            constructor() {
+                this.storageKey = 'lifestyle_data';
+            }
+            
+            saveCall(callData) {
+                const calls = this.getCalls();
+                calls.push({
+                    id: Date.now(),
+                    ...callData,
+                    status: 'scheduled',
+                    createdAt: new Date().toISOString()
+                });
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(calls));
+                } catch (e) {
+                    console.error('Storage error:', e);
+                }
+            }
+            
+            getCalls() {
+                try {
+                    const data = localStorage.getItem(this.storageKey);
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    console.error('Storage retrieval error:', e);
+                    return [];
+                }
+            }
+            
+            getCallHistory() {
+                return this.getCalls().slice(-10); 
+            }
+        }
+
+        // Initialize storage
+        const storage = new LifestyleStorage();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeEventListeners();
+            focusMessageInput();
+            updateSendButtonState();
+            updateQuickActions();
+            loadChatHistory();
+            updateTrackerDisplay();
+            console.log('🌟 Lifestyle AI Assistant Initialized');
+        });
+
+        let scene, camera, renderer, mesh, animateLoop;
+
+        function initializeThreeJs() {
+            scene = new THREE.Scene();
+            renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, alpha: true });
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            
+            camera.position.z = 2;
+
+            function onResize() {
+                if (threeCanvas && threeCanvas.parentElement) {
+                    const width = threeCanvas.parentElement.clientWidth;
+                    const height = threeCanvas.parentElement.clientHeight;
+                    renderer.setSize(width, height);
+                    camera.aspect = width / height;
+                    camera.updateProjectionMatrix();
+                }
+            }
+            
+            window.addEventListener('resize', onResize);
+            onResize();
+            
+            const geometry = new THREE.DodecahedronGeometry(0.8, 1);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xff6b00,
+                shininess: 50,
+                flatShading: true
+            });
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
+            directionalLight1.position.set(1, 1, 1);
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight2.position.set(-1, -1, -1);
+            scene.add(directionalLight2);
+
+            animateLoop = function () {
+                if (!assistantView.classList.contains('active')) {
+                    return;
+                }
+                requestAnimationFrame(animateLoop);
+                mesh.rotation.x += 0.005;
+                mesh.rotation.y += 0.005;
+                renderer.render(scene, camera);
+            };
+
+            animateLoop();
+        }
+
+        function initializeEventListeners() {
+            sendButton.addEventListener('click', handleSendMessage);
+            messageInput.addEventListener('keypress', handleKeyPress);
+            messageInput.addEventListener('input', handleInputChange);
+            careModeToggle.addEventListener('click', handleModeToggle);
+            cancelCallBtn.addEventListener('click', closeCallModal);
+            scheduleCallBtn.addEventListener('click', handleScheduleCall);
+            callModal.addEventListener('click', (e) => {
+                if (e.target === callModal) closeCallModal();
+            });
+
+            const historyBtnElement = document.getElementById('historyBtn');
+            if (historyBtnElement) {
+                historyBtnElement.addEventListener('click', showCallHistory);
+            }
+            const chatHistoryBtnElement = document.getElementById('chatHistoryBtn');
+            if (chatHistoryBtnElement) {
+                chatHistoryBtnElement.addEventListener('click', () => {
+                    window.location.href = 'chat-history.html';
+                });
+            }
+
+            const profileIconElement = document.getElementById('profileIcon');
+            if (profileIconElement) {
+                profileIconElement.addEventListener('click', () => {
+                    window.location.href = 'user-profile.html';
+                });
+            }
+
+            const assistantBtnElement = document.getElementById('assistantBtn');
+            if (assistantBtnElement) {
+                assistantBtnElement.addEventListener('click', () => {
+                    switchView('assistant');
+                });
+            }
+            
+            const logoutBtnElement = document.getElementById('logoutBtn');
+            if (logoutBtnElement) {
+                logoutBtnElement.addEventListener('click', logout);
+            }
+            
+            yesBtn.addEventListener('click', () => handleTrackerAnswer(true));
+            noBtn.addEventListener('click', () => handleTrackerAnswer(false));
+
+            document.addEventListener('keydown', handleKeyboardNavigation);
+        }
+        
+        function logout() {
+            // A simple logout implementation for demonstration.
+            // In a real application, you would handle Firebase or other auth logout here.
+            localStorage.removeItem('chatHistory');
+            localStorage.removeItem('lifestyle_data');
+            window.location.href = '/'; // Redirect to home or login page
+        }
+
+        function switchView(view) {
+            mainView.classList.remove('active');
+            assistantView.classList.remove('active');
+            trackerView.classList.remove('active');
+            chatInputArea.style.display = 'none';
+            threeCanvas.style.display = 'none';
+
+            if (view === 'assistant') {
+                assistantView.classList.add('active');
+                threeCanvas.style.display = 'block';
+                // Only initialize Three.js once
+                if (!scene) {
+                    initializeThreeJs();
+                } else {
+                    animateLoop();
+                }
+            } else if (view === 'tracker') {
+                trackerView.classList.add('active');
+            } else {
+                mainView.classList.add('active');
+                chatInputArea.style.display = 'block';
+            }
+        }
+
+        function validatePhoneNumber(phone) {
+            const indianPhoneRegex = /^(\+91|91)?[6-9]\d{9}$/;
+            return indianPhoneRegex.test(phone.replace(/\s/g, ''));
+        }
+
+        function validateCallForm() {
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const name = document.getElementById('patientName').value.trim();
+            
+            if (!name) {
+                showMessage('Please enter your name', 'error');
+                return false;
+            }
+            
+            if (!validatePhoneNumber(phone)) {
+                showMessage('Please enter a valid Indian phone number', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        async function handleSendMessage() {
+            const message = messageInput.value.trim();
+            if (message && !isTyping) {
+                if (message.toLowerCase() === 'show tracking' && currentCareMode === 'personalized') {
+                    switchView('tracker');
+                    return;
+                }
+
+                sendUserMessage(message);
+                messageInput.value = '';
+                updateSendButtonState();
+                await getAIResponse(message);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+            }
+        }
+
+        function handleInputChange() {
+            updateSendButtonState();
+        }
+
+        function updateSendButtonState() {
+            const hasText = messageInput.value.trim().length > 0;
+            sendButton.disabled = !hasText || isTyping;
+
+            if (hasText && !isTyping) {
+                sendButton.style.opacity = '1';
+                sendButton.style.transform = 'scale(1)';
+            } else {
+                sendButton.style.opacity = '0.6';
+                sendButton.style.transform = 'scale(0.95)';
+            }
+        }
+
+        function sendUserMessage(message) {
+            addMessage(message, 'user');
+            messageHistory.push({ role: 'user', content: message, timestamp: new Date().toISOString() });
+            saveChatHistory();
+        }
+        
+        function handleModeToggle(e) {
+            const target = e.target;
+            if (target.classList.contains('toggle-btn')) {
+                document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+                currentCareMode = target.dataset.mode;
+                updateChatInterface();
+                updateQuickActions();
+                updateHeaderActions();
+            }
+        }
+        
+        function updateHeaderActions() {
+            if (currentCareMode === 'general') {
+                chatHeader.classList.add('general-header');
+                chatHeader.classList.remove('personalized-header');
+            } else {
+                chatHeader.classList.add('personalized-header');
+                chatHeader.classList.remove('general-header');
+            }
+        }
+
+        function updateChatInterface() {
+            chatMessages.innerHTML = '';
+            let welcomeMessage = "Hello! I can provide general health and wellness advice. What would you like to know about?";
+            if (currentCareMode === 'personalized') {
+                welcomeMessage = "Hello! I'm your personal AI lifestyle assistant. How can I help you today?";
+            }
+            const initialMessageDiv = document.createElement('div');
+            initialMessageDiv.className = 'welcome-message';
+            initialMessageDiv.innerHTML = `
+                <div class="bot-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <h3>Welcome to Lifestyle AI</h3>
+                    <p>${welcomeMessage}</p>
+                </div>
+            `;
+            chatMessages.appendChild(initialMessageDiv);
+        }
+
+        function updateQuickActions() {
+            quickActionsContainer.innerHTML = '';
+            const actions = quickActions[currentCareMode];
+            actions.forEach(action => {
+                const button = document.createElement('button');
+                button.className = 'quick-action-btn';
+                button.innerHTML = `${action.icon} ${action.text}`;
+                button.setAttribute('data-message', action.message);
+                button.addEventListener('click', handleQuickAction);
+                quickActionsContainer.appendChild(button);
+            });
+        }
+        
+        async function getAIResponse(userMessage) {
+            showTypingIndicator();
+
+            const GEMINI_API_KEY = "AIzaSyA7tNlDg9CgQDwA7twWMzWssoBsvQDwRA0"; 
+            const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+
+            let retries = 0;
+            const maxRetries = 3;
+            const baseDelay = 1000;
+
+            let systemPrompt = '';
+            if (currentCareMode === 'general') {
+                systemPrompt = `You are a general health and wellness assistant. Provide concise, safe, and positive advice. Do not act as a medical professional. Stick to general knowledge.`;
+            } else {
+                systemPrompt = `You are a personalized lifestyle assistant. Your responses should be empathetic, positive, and tailored. You MUST always give a multi-day diet plan based on the user's request. 
+
+The plan must be formatted as a JSON object with a single root key 'dietPlan'. The 'dietPlan' array should contain objects, each representing a day. Each day object should have:
+- 'date' field in YYYY-MM-DD format (starting from today: ${new Date().toISOString().split('T')[0]})
+- 'meals' array with meal objects containing 'meal' and 'time' fields
+- 'time' should be in HH:MM AM/PM format (e.g., "08:00 AM", "02:00 PM")
+
+Generate dates starting from today and continue for the requested number of days. The response should be ONLY the JSON object, nothing else.
+
+Example structure:
+{
+  "dietPlan": [
+    {
+      "date": "${new Date().toISOString().split('T')[0]}",
+      "meals": [
+        {"meal": "Oatmeal with fruits", "time": "08:00 AM"},
+        {"meal": "Greek yogurt", "time": "10:00 AM"}
+      ]
+    }
+  ]
+}`;
+            }
+
+            const payload = {
+                contents: [
+                    { role: 'user', parts: [{ text: userMessage }] }
+                ],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            while (retries < maxRetries) {
+                try {
+                    const response = await fetch(GEMINI_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const botResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        
+                        if (currentCareMode === 'personalized') {
+                            try {
+                                const cleanedResponse = botResponse.replace(/```json\n|```/g, '').trim();
+                                const parsedResponse = JSON.parse(cleanedResponse);
+                                currentAIResponse = parsedResponse;
+                                addStructuredDietPlan(parsedResponse);
+                            } catch (error) {
+                                console.error('Failed to parse AI response:', error);
+                                addMessage("I'm sorry, I couldn't generate a valid diet plan. Please try again.", 'bot');
+                            }
+                        } else {
+                            addMessage(botResponse, 'bot', false);
+                        }
+                        
+                        hideTypingIndicator();
+                        return;
+                    } else if (response.status === 429) {
+                        retries++;
+                        const delay = baseDelay * Math.pow(2, retries);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('Error fetching AI response:', error);
+                    retries++;
+                    const delay = baseDelay * Math.pow(2, retries);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            hideTypingIndicator();
+            addMessage("I'm having trouble connecting to the AI assistant. Please try again later.", 'bot');
+        }
+
+        function formatDietPlanForDisplay(plan) {
+            let htmlContent = '### Here is your personalized diet plan:\n\n';
+            const today = new Date();
+            
+            plan.dietPlan.forEach((day, index) => {
+                const currentDate = new Date(today);
+                currentDate.setDate(today.getDate() + index);
+                htmlContent += `#### ${currentDate.toDateString()}\n`;
+                day.meals.forEach(meal => {
+                    htmlContent += `* **${meal.time}**: ${meal.meal}\n`;
+                });
+                htmlContent += '\n';
+            });
+            return htmlContent;
+        }
+
+        function addStructuredDietPlan(plan) {
+            const formattedContent = formatDietPlanForDisplay(plan);
+            const messageDiv = addMessage(formattedContent, 'bot');
+            
+            const scheduleBtn = document.createElement('button');
+            scheduleBtn.classList.add('call-schedule-btn');
+            scheduleBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                Set Reminders
+            `;
+            scheduleBtn.addEventListener('click', openCallModal);
+            messageDiv.querySelector('.message-bubble').appendChild(scheduleBtn);
+        }
+
+        function addMessage(content, sender, canScheduleCall = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `message-avatar ${sender}`;
+
+            const avatarIcon = sender === 'bot' ?
+                `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>` :
+                `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                </svg>`;
+
+            avatar.innerHTML = avatarIcon;
+
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${sender}`;
+            bubble.innerHTML = marked.parse(content);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+
+            if (sender === 'user' || !currentAIResponse) {
+              messageHistory.push({ role: sender, content: content, timestamp: new Date().toISOString() });
+              saveChatHistory();
+            }
+
+            return messageDiv;
+        }
+
+        function loadChatHistory() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shouldLoad = urlParams.get('load');
+            
+            if (shouldLoad) {
+                try {
+                    const tempHistory = localStorage.getItem('tempChatHistory');
+                    if (tempHistory) {
+                        messageHistory = JSON.parse(tempHistory);
+                        localStorage.removeItem('tempChatHistory'); 
+                    }
+                } catch (e) {
+                    console.error("Failed to load temporary chat history.", e);
+                }
+            } else {
+                try {
+                    const storedHistory = localStorage.getItem('chatHistory');
+                    messageHistory = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error("Failed to load chat history from local storage.", e);
+                }
+            }
+
+            chatMessages.innerHTML = '';
+            messageHistory.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.role === 'user' ? 'user' : 'bot'}`;
+                const avatar = document.createElement('div');
+                avatar.className = `message-avatar ${msg.role === 'user' ? 'user' : 'bot'}`;
+                const avatarIcon = msg.role === 'bot' ?
+                    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>` :
+                    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+                avatar.innerHTML = avatarIcon;
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${msg.role === 'user' ? 'user' : 'bot'}`;
+                bubble.innerHTML = marked.parse(msg.content);
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(bubble);
+                chatMessages.appendChild(messageDiv);
+            });
+            scrollToBottom();
+            updateHeaderActions();
+        }
+
+        function saveChatHistory() {
+            try {
+                localStorage.setItem('chatHistory', JSON.stringify(messageHistory));
+            } catch (e) {
+                console.error("Failed to save chat history to local storage.", e);
+            }
+        }
+        
+        function saveTrackerData() {
+            try {
+                localStorage.setItem('dietTracker', JSON.stringify(trackerData));
+            } catch (e) {
+                console.error("Failed to save tracker data.", e);
+            }
+        }
+        
+        function handleTrackerAnswer(followed) {
+            const today = new Date().toLocaleDateString();
+            trackerData.lastCheckDate = today;
+
+            if (followed) {
+                if (trackerData.progress < 100) {
+                    trackerData.progress += 20; // Increase progress by 20%
+                    if (trackerData.progress > 100) trackerData.progress = 100;
+                }
+            } else {
+                 showMessage('Keep trying! Every step counts!', 'error');
+            }
+            saveTrackerData();
+            updateTrackerDisplay();
+        }
+
+        function updateTrackerDisplay() {
+            const today = new Date().toLocaleDateString();
+            const checkedToday = trackerData.lastCheckDate === today;
+            
+            progressBar.style.width = `${trackerData.progress}%`;
+            progressLabel.textContent = `${trackerData.progress}%`;
+            
+            yesBtn.disabled = checkedToday;
+            noBtn.disabled = checkedToday;
+            
+            if (checkedToday) {
+                document.getElementById('trackerQuestion').textContent = "You have already tracked your diet for today.";
+            } else {
+                document.getElementById('trackerQuestion').textContent = "Did you follow today's diet?";
+            }
+        }
+
+        function showCallHistory() {
+            const calls = storage.getCalls();
+            let historyHTML = '<h3>📱 Recent Reminders</h3>';
+            
+            if (calls.length === 0) {
+                historyHTML += '<p>No reminders scheduled yet.</p>';
+            } else {
+                calls.forEach(call => {
+                    const typeIcon = call.reminderType === 'call' ? '📞' : 
+                                   call.reminderType === 'whatsapp' ? '💬' : '📱';
+                    const typeLabel = call.reminderType === 'call' ? 'Call' : 
+                                    call.reminderType === 'whatsapp' ? 'WhatsApp' : 'SMS';
+                    
+                    historyHTML += `
+                        <div class="history-item">
+                            <strong>👤 ${call.patientName}</strong><br>
+                            ${typeIcon} ${call.phoneNumber} (${typeLabel})<br>
+                            ⏰ ${new Date(call.scheduledTime).toLocaleString()}<br>
+                            <span class="status-scheduled">Scheduled</span>
+                        </div>
+                    `;
+                });
+            }
+            
+            addMessage(historyHTML, 'bot');
+        }
+
+        function openCallModal() {
+            callModal.classList.add('active');
+            document.getElementById('phoneNumber').focus();
+        }
+
+        function closeCallModal() {
+            callModal.classList.remove('active');
+            callScheduleForm.reset();
+        }
+
+        async function handleScheduleCall() {
+            if (!validateCallForm()) return;
+
+            const reminderType = document.querySelector('input[name="reminderType"]:checked').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const patientName = document.getElementById('patientName').value;
+            
+            const payload = {
+                dietPlan: currentAIResponse.dietPlan,
+                phoneNumber,
+                patientName,
+                reminderType,
+            };
+
+            try {
+                const response = await scheduleCallViaWebhook(payload);
+                
+                if (response.success) {
+                    storage.saveCall({ phoneNumber, patientName, reminderType, scheduledTime: new Date().toISOString() }); 
+                    
+                    const reminderTypeText = reminderType === 'call' ? 'Voice call' : 
+                                           reminderType === 'whatsapp' ? 'WhatsApp message' : 'SMS';
+                    showMessage(`${reminderTypeText} reminders scheduled successfully!`, 'success');
+                    closeCallModal();
+                    
+                    const confirmationMessage = `✅ **${reminderTypeText} Reminders Scheduled**
+                    
+📞 **Phone:** ${phoneNumber}
+👤 **Name:** ${patientName}
+📱 **Type:** ${reminderType.toUpperCase()}
+<p>Your full diet plan has been scheduled. You'll receive reminders at the specified times. Stay healthy! 🌟</p>`;
+                    addMessage(confirmationMessage, 'bot');
+                } else {
+                    throw new Error(response.message || 'Failed to schedule reminder');
+                }
+            } catch (error) {
+                console.error('Error scheduling reminder:', error);
+                showMessage('Failed to schedule reminder. Please try again.', 'error');
+            }
+        }
+
+        async function scheduleCallViaWebhook(payload) {
+            try {
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                console.log('✅ Webhook payload sent successfully:', payload);
+                return { success: true, message: 'Reminder scheduled successfully!' };
+                
+            } catch (error) {
+                console.error('Webhook error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        function showTypingIndicator() {
+            isTyping = true;
+            updateSendButtonState();
+            
+            const existingIndicator = document.getElementById('typing-indicator');
+            if (existingIndicator) return;
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot typing-indicator';
+            typingDiv.id = 'typing-indicator';
+
+            typingDiv.innerHTML = `
+                <div class="message-avatar bot">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="message-bubble bot">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            isTyping = false;
+            updateSendButtonState();
+
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function handleQuickAction(e) {
+            const message = e.currentTarget.getAttribute('data-message');
+            messageInput.value = message;
+            
+            if (message.toLowerCase() === 'show tracking') {
+                switchView('tracker');
+                return;
+            }
+
+            messageInput.focus();
+            updateSendButtonState();
+
+            const targetElement = e.currentTarget;
+            if (targetElement) {
+                targetElement.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    if (targetElement) {
+                        targetElement.style.transform = 'scale(1)';
+                    }
+                }, 150);
+            }
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function focusMessageInput() {
+            messageInput.focus();
+        }
+
+        function handleKeyboardNavigation(e) {
+            if (e.key === 'Escape' && callModal.classList.contains('active')) {
+                closeCallModal();
+            }
+        }
+
+        function showMessage(message, type) {
+            const existingMessage = document.querySelector('.system-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `system-message system-message-${type}`;
+            messageElement.textContent = message;
+            messageElement.style.animation = 'slideDown 0.3s ease-out';
+
+            document.body.appendChild(messageElement);
+
+            setTimeout(() => {
+                messageElement.style.animation = 'slideUpOut 0.3s ease-in forwards';
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.remove();
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        messageInput.addEventListener('focus', () => {
+            if (messageInput && messageInput.parentElement) {
+                messageInput.parentElement.style.transform = 'scale(1.02)';
+                messageInput.parentElement.style.transition = 'transform 0.2s ease';
+            }
+        });
+
+        messageInput.addEventListener('blur', () => {
+            if (messageInput && messageInput.parentElement) {
+                messageInput.parentElement.style.transform = 'scale(1)';
+            }
+        });
+    </script>
+</body>
+</html>
