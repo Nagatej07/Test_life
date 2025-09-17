@@ -1291,7 +1291,7 @@
         let trackerData = JSON.parse(localStorage.getItem('dietTracker')) || { progress: 0, lastCheckDate: null };
 
         // Placeholder for n8n webhook URL
-        const N8N_WEBHOOK_URL = 'https://nagatej.app.n8n.cloud/webhook/diet-reminder';
+        const N8N_WEBHOOK_URL = 'http://localhost:5678/webhook/diet-reminder';
 
         // Quick action messages based on mode
         const quickActions = {
@@ -1624,7 +1624,7 @@
         async function getAIResponse(userMessage) {
             showTypingIndicator();
 
-            const GEMINI_API_KEY = "AIzaSyA7tNlDg9CgQDwA7twWMzWssoBsvQDwRA0"; 
+            const GEMINI_API_KEY = "AIzaSyAqlPasyAOf6791YmrqPiskrXHZqriaRR4"; 
             const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
             let retries = 0;
@@ -2090,5 +2090,6 @@ Example structure:
     </script>
 </body>
 </html>
+
 
 
